@@ -55,6 +55,13 @@ async function gemini_lite(text) {
   }
 }
 
+async function getUserNickname(message) {
+  const guild = message.guild;
+  const userId = message.author.id;
+  const member = await guild.members.fetch(userId);
+  return member.nickname;
+}
+
 client
   .login(process.env.DISCORD_TOKEN)
   .then(() => {
@@ -67,11 +74,14 @@ client
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (message.content.startsWith("!tldr")) {
+    const userNickname = await getUserNickname(message);
     console.log(
       "Bot called by " +
         message.author.username +
         " " +
         message.author.displayName +
+        " " +
+        userNickname +
         " in " +
         message.channel.name
     );
@@ -100,7 +110,9 @@ client.on("messageCreate", async (message) => {
         (msg) => !msg.author.bot && msg.id !== message.id
       );
       const oneGiantText = filteredMessages
-        .map((msg) => `${msg.author.displayName}: ${msg.content}`)
+        .map(
+          (msg) => `${userNickname || msg.author.displayName}: ${msg.content}`
+        )
         .join("\n");
       channel.sendTyping();
       const response = await gemini(oneGiantText);
