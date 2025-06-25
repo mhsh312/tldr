@@ -102,6 +102,7 @@ client.on("messageCreate", async (message) => {
       const oneGiantText = filteredMessages
         .map((msg) => `${msg.author.displayName}: ${msg.content}`)
         .join("\n");
+      channel.sendTyping();
       const response = await gemini(oneGiantText);
       message.reply(response?.text || response);
     } catch (error) {
