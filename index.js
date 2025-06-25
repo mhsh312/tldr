@@ -24,6 +24,30 @@ async function gemini(text) {
   } catch (error) {
     console.error(error);
     const errorObject = JSON.parse(error.message);
+    if (errorObject?.error?.code === 503) {
+      const lite_response = await gemini_lite(text); // if flash is down, use lite
+      return (
+        "The flash model is overloaded, using lite model instead. " +
+          lite_response?.text || lite_response
+      );
+    }
+    return (
+      errorObject?.error?.message ||
+      "An error occurred while processing your request."
+    );
+  }
+}
+
+async function gemini_lite(text) {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite-preview-06-17",
+      contents: `You're a discord chat summary bot named "TLDR bot" with command !tldr, summarise this in less than 300 words while mentioning who said what and use gender neutral pronouns. Discord doesn't allow more than 2,000 characters in a message so make sure to not exceed that. No additional text only summary: ${text}`,
+    });
+    return response;
+  } catch (error) {
+    console.error(error);
+    const errorObject = JSON.parse(error.message);
     return (
       errorObject?.error?.message ||
       "An error occurred while processing your request."
